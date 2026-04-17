@@ -77,9 +77,11 @@ body {
 #home.active { justify-content: center; }
 .mode-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: 1fr;
   gap: 14px;
-  margin-top: 6px;
+  margin: 6px auto 0;
+  width: 100%;
+  max-width: 360px;
 }
 .mode-card {
   background: var(--card);
