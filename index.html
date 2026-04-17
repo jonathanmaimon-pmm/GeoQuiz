@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffd66b" />
+  <title>Geography Quiz</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app">
+    <!-- Home screen -->
+    <section id="home" class="screen active">
+      <h1 class="title">Geography Quiz <span aria-hidden="true">🌍</span></h1>
+      <p class="subtitle">Pick a game!</p>
+      <div class="mode-grid">
+        <button class="mode-card" data-mode="flag">
+          <span class="mode-icon" aria-hidden="true">🚩</span>
+          <span class="mode-label">Flags</span>
+        </button>
+        <button class="mode-card" data-mode="shape">
+          <span class="mode-icon" aria-hidden="true">🗺️</span>
+          <span class="mode-label">Shapes</span>
+        </button>
+        <button class="mode-card" data-mode="symbol">
+          <span class="mode-icon" aria-hidden="true">🎎</span>
+          <span class="mode-label">Symbols</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Quiz screen -->
+    <section id="quiz" class="screen">
+      <header class="quiz-header">
+        <button id="home-btn" class="icon-btn" aria-label="Back home">🏠</button>
+        <div class="progress">
+          <span id="q-number">1</span> / <span id="q-total">10</span>
+        </div>
+        <div class="score" aria-label="Score">
+          <span aria-hidden="true">⭐</span> <span id="score">0</span>
+        </div>
+      </header>
+
+      <div class="question">
+        <p id="question-text" class="question-text"></p>
+        <div id="question-media" class="question-media"></div>
+      </div>
+
+      <div id="choices" class="choices"></div>
+
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+      <button id="next-btn" class="next-btn hidden">Next →</button>
+    </section>
+
+    <!-- Results screen -->
+    <section id="results" class="screen">
+      <h2 id="result-title" class="title"></h2>
+      <div id="result-stars" class="result-stars" aria-hidden="true"></div>
+      <p id="result-score" class="subtitle"></p>
+      <div class="result-actions">
+        <button id="play-again" class="big-btn">Play Again</button>
+        <button id="back-home" class="big-btn secondary">Home</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
