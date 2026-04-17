@@ -203,7 +203,6 @@ function onAnswer(btn, country) {
     soundWrong();
   }
   els.nextBtn.classList.remove("hidden");
-  els.nextBtn.scrollIntoView({ behavior: "smooth", block: "end" });
 }
 
 function nextQuestion() {
