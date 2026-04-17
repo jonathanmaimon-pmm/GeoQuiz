@@ -37,7 +37,7 @@ body {
 #app {
   max-width: 820px;
   margin: 0 auto;
-  padding: 20px 18px 40px;
+  padding: 20px 18px calc(40px + env(safe-area-inset-bottom));
 }
 
 /* Screens */
