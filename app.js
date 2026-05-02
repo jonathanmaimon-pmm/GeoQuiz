@@ -1,6 +1,7 @@
 // Geography Quiz — kid-friendly, no dependencies.
 // Modes: flag (show flag, pick country), shape (show silhouette, pick country),
-//        symbol (show cultural emoji, pick country).
+//        symbol (show cultural emoji, pick country),
+//        clue  (show 3 trivia facts, pick country).
 
 const TOTAL_QUESTIONS = 10;
 const CHOICE_COUNT = 4;
@@ -75,6 +76,20 @@ function soundFinish() {
   [523, 659, 784, 1046].forEach((f, i) => playTone(f, 0.22, "triangle", 0.14, i * 0.14));
 }
 
+// ---------- Speech (read clues aloud) ----------
+const speechSupported = "speechSynthesis" in window;
+function speak(text) {
+  if (!speechSupported) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.92;
+  u.pitch = 1.05;
+  speechSynthesis.speak(u);
+}
+function stopSpeech() {
+  if (speechSupported) speechSynthesis.cancel();
+}
+
 // ---------- Utils ----------
 function shuffle(arr) {
   const a = arr.slice();
@@ -88,6 +103,7 @@ const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 // ---------- Screen switching ----------
 function show(name) {
+  if (name !== "quiz") stopSpeech();
   Object.values(screens).forEach((s) => s.classList.remove("active"));
   screens[name].classList.add("active");
 }
@@ -112,6 +128,7 @@ function buildChoices(correct) {
 
 function renderQuestion() {
   state.locked = false;
+  stopSpeech();
   els.feedback.textContent = "";
   els.feedback.className = "feedback";
   els.nextBtn.classList.add("hidden");
@@ -147,7 +164,40 @@ function renderQuestion() {
     big.textContent = pick(country.symbols);
     els.questionMedia.appendChild(big);
     renderFlagChoices(choices);
+  } else if (state.mode === "clue") {
+    els.questionText.textContent = "Which country am I?";
+    els.questionMedia.appendChild(buildClueCard(country));
+    renderFlagChoices(choices);
   }
+}
+
+function buildClueCard(country) {
+  const wrap = document.createElement("div");
+  wrap.className = "clue-card";
+
+  const list = document.createElement("ul");
+  list.className = "clue-list";
+  for (const text of country.clues) {
+    const li = document.createElement("li");
+    li.textContent = text;
+    list.appendChild(li);
+  }
+  wrap.appendChild(list);
+
+  if (speechSupported) {
+    const speakBtn = document.createElement("button");
+    speakBtn.type = "button";
+    speakBtn.className = "speak-btn";
+    speakBtn.setAttribute("aria-label", "Read clues aloud");
+    speakBtn.textContent = "🔊 Read aloud";
+    speakBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      speak(country.clues.join(". "));
+    });
+    wrap.appendChild(speakBtn);
+  }
+
+  return wrap;
 }
 
 function renderTextChoices(choices) {

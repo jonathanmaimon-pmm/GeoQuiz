@@ -1,27 +1,188 @@
 // Countries curated for kid-friendly recognition.
 // Each has a 2-letter ISO code (used for flag + shape images),
-// a short display name, and a small bag of cultural symbol emojis.
+// a short display name, a small bag of cultural symbol emojis,
+// and a few short kid-language clues used by the Clues mode.
 const COUNTRIES = [
-  { code: "us", name: "United States",  symbols: ["\uD83D\uDDFD", "\uD83E\uDD85", "\uD83C\uDF54"] },
-  { code: "jp", name: "Japan",          symbols: ["\uD83C\uDF63", "\uD83C\uDF38", "\uD83D\uDDFE"] },
-  { code: "fr", name: "France",         symbols: ["\uD83D\uDDFC", "\uD83E\uDD50", "\uD83E\uDDC0"] },
-  { code: "it", name: "Italy",          symbols: ["\uD83C\uDF55", "\uD83C\uDF5D", "\uD83C\uDFDB\uFE0F"] },
-  { code: "gb", name: "United Kingdom", symbols: ["\uD83D\uDC51", "\u2614", "\uD83C\uDFA1"] },
-  { code: "de", name: "Germany",        symbols: ["\uD83E\uDD68", "\uD83C\uDF7B", "\uD83D\uDE97"] },
-  { code: "br", name: "Brazil",         symbols: ["\u26BD", "\uD83D\uDC12", "\uD83D\uDC83"] },
-  { code: "mx", name: "Mexico",         symbols: ["\uD83C\uDF35", "\uD83C\uDF2E", "\uD83C\uDFB8"] },
-  { code: "cn", name: "China",          symbols: ["\uD83D\uDC3C", "\uD83D\uDC09", "\uD83E\uDD62"] },
-  { code: "in", name: "India",          symbols: ["\uD83D\uDC18", "\uD83D\uDD4C", "\uD83C\uDF5B"] },
-  { code: "eg", name: "Egypt",          symbols: ["\uD83D\uDC2A", "\uD83C\uDFDC\uFE0F", "\uD83D\uDC08"] },
-  { code: "au", name: "Australia",      symbols: ["\uD83E\uDD98", "\uD83D\uDC28", "\uD83C\uDFC4"] },
-  { code: "ca", name: "Canada",         symbols: ["\uD83C\uDF41", "\uD83C\uDFD2", "\uD83E\uDD8C"] },
-  { code: "es", name: "Spain",          symbols: ["\uD83D\uDC83", "\uD83D\uDC02", "\uD83E\uDD58"] },
-  { code: "gr", name: "Greece",         symbols: ["\uD83C\uDFDB\uFE0F", "\uD83E\uDED2", "\uD83D\uDC19"] },
-  { code: "ke", name: "Kenya",          symbols: ["\uD83E\uDD81", "\uD83E\uDD92", "\uD83D\uDC18"] },
-  { code: "ar", name: "Argentina",      symbols: ["\u26BD", "\uD83E\uDD69", "\uD83D\uDC0E"] },
-  { code: "th", name: "Thailand",       symbols: ["\uD83D\uDC18", "\uD83C\uDF5C", "\uD83D\uDDFF"] },
-  { code: "za", name: "South Africa",   symbols: ["\uD83E\uDD81", "\uD83E\uDD93", "\uD83E\uDD92"] },
-  { code: "ru", name: "Russia",         symbols: ["\uD83D\uDC3B", "\u2744\uFE0F", "\uD83C\uDFDB\uFE0F"] },
+  {
+    code: "us", name: "United States",
+    symbols: ["🗽", "🦅", "🍔"],
+    clues: [
+      "It has 50 states.",
+      "The Statue of Liberty is here.",
+      "People love hot dogs and baseball.",
+    ],
+  },
+  {
+    code: "jp", name: "Japan",
+    symbols: ["🍣", "🌸", "🗾"],
+    clues: [
+      "It is a country made of islands in Asia.",
+      "Sushi was invented here.",
+      "Pretty pink cherry blossoms bloom in spring.",
+    ],
+  },
+  {
+    code: "fr", name: "France",
+    symbols: ["🗼", "🥐", "🧀"],
+    clues: [
+      "The Eiffel Tower is in its capital, Paris.",
+      "People eat croissants for breakfast.",
+      "People here speak French.",
+    ],
+  },
+  {
+    code: "it", name: "Italy",
+    symbols: ["🍕", "🍝", "🏛️"],
+    clues: [
+      "On a map it looks like a boot!",
+      "Pizza and pasta come from here.",
+      "It has an old building called the Colosseum.",
+    ],
+  },
+  {
+    code: "gb", name: "United Kingdom",
+    symbols: ["👑", "☔", "🎡"],
+    clues: [
+      "It has a king who lives in a big palace.",
+      "People here drink lots of tea.",
+      "Big Ben is a famous clock tower in London.",
+    ],
+  },
+  {
+    code: "de", name: "Germany",
+    symbols: ["🥨", "🍻", "🚗"],
+    clues: [
+      "Famous for sausages and twisty pretzels.",
+      "Lots of cars are built here.",
+      "People here speak German.",
+    ],
+  },
+  {
+    code: "br", name: "Brazil",
+    symbols: ["⚽", "🐒", "💃"],
+    clues: [
+      "The biggest country in South America.",
+      "The Amazon rainforest is here.",
+      "People love soccer and samba dancing.",
+    ],
+  },
+  {
+    code: "mx", name: "Mexico",
+    symbols: ["🌵", "🌮", "🎸"],
+    clues: [
+      "Tacos and burritos come from here.",
+      "Ancient pyramids were built long ago.",
+      "People here speak Spanish.",
+    ],
+  },
+  {
+    code: "cn", name: "China",
+    symbols: ["🐼", "🐉", "🥢"],
+    clues: [
+      "Has the Great Wall, a super long wall.",
+      "Cute giant pandas live here.",
+      "More people live here than anywhere else.",
+    ],
+  },
+  {
+    code: "in", name: "India",
+    symbols: ["🐘", "🕌", "🍛"],
+    clues: [
+      "The Taj Mahal is a famous white building here.",
+      "Many people love yummy spicy curry.",
+      "Elephants and tigers live in the wild.",
+    ],
+  },
+  {
+    code: "eg", name: "Egypt",
+    symbols: ["🐪", "🏜️", "🐈"],
+    clues: [
+      "Has giant pyramids in the desert.",
+      "The long Nile river flows through it.",
+      "Camels can walk across the sandy desert.",
+    ],
+  },
+  {
+    code: "au", name: "Australia",
+    symbols: ["🦘", "🐨", "🏄"],
+    clues: [
+      "It is a whole country and a continent!",
+      "Hopping kangaroos and koalas live here.",
+      "Has a giant coral reef called the Great Barrier Reef.",
+    ],
+  },
+  {
+    code: "ca", name: "Canada",
+    symbols: ["🍁", "🏒", "🦌"],
+    clues: [
+      "A very big and snowy country.",
+      "Famous for sweet maple syrup.",
+      "Has a red maple leaf on its flag.",
+    ],
+  },
+  {
+    code: "es", name: "Spain",
+    symbols: ["💃", "🐂", "🥘"],
+    clues: [
+      "Famous for flamenco dancing.",
+      "People eat a yummy rice dish called paella.",
+      "People here speak Spanish.",
+    ],
+  },
+  {
+    code: "gr", name: "Greece",
+    symbols: ["🏛️", "🫒", "🐙"],
+    clues: [
+      "Has white houses by sparkly blue water.",
+      "Home of old stories about gods and heroes.",
+      "Famous for olives and feta cheese.",
+    ],
+  },
+  {
+    code: "ke", name: "Kenya",
+    symbols: ["🦁", "🦒", "🐘"],
+    clues: [
+      "Lions and giraffes live on its grasslands.",
+      "Lots of fast runners come from here.",
+      "It is in East Africa.",
+    ],
+  },
+  {
+    code: "ar", name: "Argentina",
+    symbols: ["⚽", "🥩", "🐎"],
+    clues: [
+      "Famous for tango dancing.",
+      "People here eat lots of tasty beef.",
+      "In South America, next to Brazil.",
+    ],
+  },
+  {
+    code: "th", name: "Thailand",
+    symbols: ["🐘", "🍜", "🗿"],
+    clues: [
+      "Famous for elephants and golden temples.",
+      "Yummy noodles called pad Thai come from here.",
+      "It is in Southeast Asia.",
+    ],
+  },
+  {
+    code: "za", name: "South Africa",
+    symbols: ["🦁", "🦓", "🦒"],
+    clues: [
+      "It is at the bottom of Africa.",
+      "Lions, zebras, and giraffes live here.",
+      "It has 11 official languages!",
+    ],
+  },
+  {
+    code: "ru", name: "Russia",
+    symbols: ["🐻", "❄️", "🏛️"],
+    clues: [
+      "The biggest country in the whole world!",
+      "Very cold with lots of snow.",
+      "Famous for nesting matryoshka dolls.",
+    ],
+  },
 ];
 
 const FLAG_URL  = (code) => `https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/${code}.svg`;
