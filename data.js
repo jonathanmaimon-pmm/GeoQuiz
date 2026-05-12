@@ -5,6 +5,7 @@
 const COUNTRIES = [
   {
     code: "us", name: "United States",
+    aliases: ["america", "the united states", "usa", "us", "u s", "u s a", "the us"],
     symbols: ["🗽", "🦅", "🍔"],
     clues: [
       "It has 50 states.",
@@ -14,6 +15,7 @@ const COUNTRIES = [
   },
   {
     code: "jp", name: "Japan",
+    aliases: ["nippon"],
     symbols: ["🍣", "🌸", "🗾"],
     clues: [
       "It is a country made of islands in Asia.",
@@ -23,6 +25,7 @@ const COUNTRIES = [
   },
   {
     code: "fr", name: "France",
+    aliases: [],
     symbols: ["🗼", "🥐", "🧀"],
     clues: [
       "The Eiffel Tower is in its capital, Paris.",
@@ -32,6 +35,7 @@ const COUNTRIES = [
   },
   {
     code: "it", name: "Italy",
+    aliases: ["italia"],
     symbols: ["🍕", "🍝", "🏛️"],
     clues: [
       "On a map it looks like a boot!",
@@ -41,6 +45,7 @@ const COUNTRIES = [
   },
   {
     code: "gb", name: "United Kingdom",
+    aliases: ["uk", "u k", "britain", "great britain", "england", "the uk"],
     symbols: ["👑", "☔", "🎡"],
     clues: [
       "It has a king who lives in a big palace.",
@@ -50,6 +55,7 @@ const COUNTRIES = [
   },
   {
     code: "de", name: "Germany",
+    aliases: ["deutschland"],
     symbols: ["🥨", "🍻", "🚗"],
     clues: [
       "Famous for sausages and twisty pretzels.",
@@ -59,6 +65,7 @@ const COUNTRIES = [
   },
   {
     code: "br", name: "Brazil",
+    aliases: ["brasil"],
     symbols: ["⚽", "🐒", "💃"],
     clues: [
       "The biggest country in South America.",
@@ -68,6 +75,7 @@ const COUNTRIES = [
   },
   {
     code: "mx", name: "Mexico",
+    aliases: ["méxico"],
     symbols: ["🌵", "🌮", "🎸"],
     clues: [
       "Tacos and burritos come from here.",
@@ -77,6 +85,7 @@ const COUNTRIES = [
   },
   {
     code: "cn", name: "China",
+    aliases: [],
     symbols: ["🐼", "🐉", "🥢"],
     clues: [
       "Has the Great Wall, a super long wall.",
@@ -86,6 +95,7 @@ const COUNTRIES = [
   },
   {
     code: "in", name: "India",
+    aliases: [],
     symbols: ["🐘", "🕌", "🍛"],
     clues: [
       "The Taj Mahal is a famous white building here.",
@@ -95,6 +105,7 @@ const COUNTRIES = [
   },
   {
     code: "eg", name: "Egypt",
+    aliases: [],
     symbols: ["🐪", "🏜️", "🐈"],
     clues: [
       "Has giant pyramids in the desert.",
@@ -104,6 +115,7 @@ const COUNTRIES = [
   },
   {
     code: "au", name: "Australia",
+    aliases: ["oz", "straya"],
     symbols: ["🦘", "🐨", "🏄"],
     clues: [
       "It is a whole country and a continent!",
@@ -113,6 +125,7 @@ const COUNTRIES = [
   },
   {
     code: "ca", name: "Canada",
+    aliases: [],
     symbols: ["🍁", "🏒", "🦌"],
     clues: [
       "A very big and snowy country.",
@@ -122,6 +135,7 @@ const COUNTRIES = [
   },
   {
     code: "es", name: "Spain",
+    aliases: ["españa"],
     symbols: ["💃", "🐂", "🥘"],
     clues: [
       "Famous for flamenco dancing.",
@@ -131,6 +145,7 @@ const COUNTRIES = [
   },
   {
     code: "gr", name: "Greece",
+    aliases: [],
     symbols: ["🏛️", "🫒", "🐙"],
     clues: [
       "Has white houses by sparkly blue water.",
@@ -140,6 +155,7 @@ const COUNTRIES = [
   },
   {
     code: "ke", name: "Kenya",
+    aliases: [],
     symbols: ["🦁", "🦒", "🐘"],
     clues: [
       "Lions and giraffes live on its grasslands.",
@@ -149,6 +165,7 @@ const COUNTRIES = [
   },
   {
     code: "ar", name: "Argentina",
+    aliases: [],
     symbols: ["⚽", "🥩", "🐎"],
     clues: [
       "Famous for tango dancing.",
@@ -158,6 +175,7 @@ const COUNTRIES = [
   },
   {
     code: "th", name: "Thailand",
+    aliases: [],
     symbols: ["🐘", "🍜", "🗿"],
     clues: [
       "Famous for elephants and golden temples.",
@@ -167,6 +185,7 @@ const COUNTRIES = [
   },
   {
     code: "za", name: "South Africa",
+    aliases: ["south-africa"],
     symbols: ["🦁", "🦓", "🦒"],
     clues: [
       "It is at the bottom of Africa.",
@@ -176,6 +195,7 @@ const COUNTRIES = [
   },
   {
     code: "ru", name: "Russia",
+    aliases: [],
     symbols: ["🐻", "❄️", "🏛️"],
     clues: [
       "The biggest country in the whole world!",

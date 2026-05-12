@@ -21,6 +21,7 @@ const els = {
   choices:       document.getElementById("choices"),
   feedback:      document.getElementById("feedback"),
   nextBtn:       document.getElementById("next-btn"),
+  micBtn:        document.getElementById("mic-btn"),
   qNumber:       document.getElementById("q-number"),
   qTotal:        document.getElementById("q-total"),
   score:         document.getElementById("score"),
@@ -90,6 +91,105 @@ function stopSpeech() {
   if (speechSupported) speechSynthesis.cancel();
 }
 
+// ---------- Speech recognition (shout-the-answer) ----------
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognitionSupported = !!SR;
+let recognition = null;
+let listening = false;
+let micDisabled = false; // turned on if permission is denied
+
+function setupRecognition() {
+  if (!recognitionSupported || recognition) return;
+  recognition = new SR();
+  recognition.lang = "en-US";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 4;
+  recognition.onresult = onSpeechResult;
+  recognition.onerror = onSpeechError;
+  recognition.onend = () => setListeningUI(false);
+}
+
+function setListeningUI(on) {
+  listening = on;
+  if (!els.micBtn) return;
+  els.micBtn.classList.toggle("listening", on);
+  els.micBtn.querySelector(".mic-label").textContent = on ? "Listening…" : "Say it!";
+  els.micBtn.querySelector(".mic-icon").textContent = on ? "👂" : "🎤";
+}
+
+function startListening() {
+  if (!recognitionSupported || micDisabled || state.locked) return;
+  setupRecognition();
+  stopSpeech(); // don't capture the read-aloud voice
+  try {
+    recognition.start();
+    setListeningUI(true);
+  } catch (_) {
+    // Already started — toggle off
+    recognition.stop();
+  }
+}
+
+function onSpeechError(e) {
+  setListeningUI(false);
+  if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+    micDisabled = true;
+    if (els.micBtn) els.micBtn.classList.add("hidden");
+  }
+}
+
+function normalize(s) {
+  return s.toLowerCase().replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function phraseMatchesCountry(phrase, country) {
+  const p = " " + normalize(phrase) + " ";
+  const candidates = [country.name, ...(country.aliases || [])];
+  for (const cand of candidates) {
+    const c = " " + normalize(cand) + " ";
+    if (p.includes(c)) return true;
+  }
+  return false;
+}
+
+function onSpeechResult(event) {
+  setListeningUI(false);
+  if (state.locked) return;
+
+  const heard = [];
+  for (const result of event.results) {
+    for (let i = 0; i < result.length; i++) heard.push(result[i].transcript);
+  }
+  if (heard.length === 0) return;
+
+  // Match against the 4 buttons currently on screen.
+  const buttons = Array.from(els.choices.querySelectorAll(".choice"));
+  const candidates = buttons.map((b) => {
+    const name = (b.querySelector("span")?.textContent || b.textContent || "").trim();
+    return { btn: b, country: COUNTRIES.find((c) => c.name === name) };
+  }).filter((x) => x.country);
+
+  for (const phrase of heard) {
+    for (const { btn, country } of candidates) {
+      if (phraseMatchesCountry(phrase, country)) {
+        btn.click();
+        return;
+      }
+    }
+  }
+
+  // No match — gentle nudge that disappears so the next question stays clean.
+  els.feedback.textContent = `I heard "${heard[0]}". Try again!`;
+  els.feedback.className = "feedback bad";
+  setTimeout(() => {
+    if (!state.locked && els.feedback.textContent.startsWith("I heard")) {
+      els.feedback.textContent = "";
+      els.feedback.className = "feedback";
+    }
+  }, 1800);
+}
+
 // ---------- Utils ----------
 function shuffle(arr) {
   const a = arr.slice();
@@ -132,6 +232,10 @@ function renderQuestion() {
   els.feedback.textContent = "";
   els.feedback.className = "feedback";
   els.nextBtn.classList.add("hidden");
+  if (els.micBtn) {
+    if (recognitionSupported && !micDisabled) els.micBtn.classList.remove("hidden");
+    setListeningUI(false);
+  }
 
   const country = state.queue[state.index];
   state.current = country;
@@ -253,6 +357,10 @@ function onAnswer(btn, country) {
     soundWrong();
   }
   els.nextBtn.classList.remove("hidden");
+  if (els.micBtn) {
+    if (listening && recognition) try { recognition.stop(); } catch (_) {}
+    els.micBtn.classList.add("hidden");
+  }
 }
 
 function nextQuestion() {
@@ -283,6 +391,16 @@ document.querySelectorAll(".mode-card").forEach((card) => {
   card.addEventListener("click", () => startQuiz(card.dataset.mode));
 });
 els.nextBtn.addEventListener("click", nextQuestion);
+if (els.micBtn) {
+  els.micBtn.addEventListener("click", () => {
+    if (listening && recognition) {
+      try { recognition.stop(); } catch (_) {}
+      setListeningUI(false);
+    } else {
+      startListening();
+    }
+  });
+}
 document.getElementById("home-btn").addEventListener("click", () => show("home"));
 document.getElementById("play-again").addEventListener("click", () => startQuiz(state.mode));
 document.getElementById("back-home").addEventListener("click", () => show("home"));
