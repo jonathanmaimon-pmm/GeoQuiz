@@ -1,7 +1,6 @@
-// Geography Quiz — kid-friendly, no dependencies.
-// Modes: flag (show flag, pick country), shape (show silhouette, pick country),
-//        symbol (show cultural emoji, pick country),
-//        clue  (show 3 trivia facts, pick country).
+// Trivia Time — kid-friendly multi-topic trivia.
+// Topics: geography (flag/shape/symbol/clue), animals (picture/sound/baby/clue).
+// Vanilla, no dependencies.
 
 const TOTAL_QUESTIONS = 10;
 const CHOICE_COUNT = 4;
@@ -9,13 +8,42 @@ const CHOICE_COUNT = 4;
 const PRAISE = ["Great job!", "Awesome!", "You got it!", "Nice!", "Woohoo!", "Fantastic!"];
 const TRY_AGAIN = ["Oops, try again!", "Not quite!", "Almost!", "Keep going!"];
 
+// ---------- Topic registry ----------
+const TOPICS = {
+  geography: {
+    name: "Geography",
+    icon: "🌍",
+    data: COUNTRIES,
+    modes: [
+      { id: "flag",   label: "Flags",   icon: "🚩" },
+      { id: "shape",  label: "Shapes",  icon: "🗺️" },
+      { id: "symbol", label: "Symbols", icon: "🎎" },
+      { id: "clue",   label: "Clues",   icon: "🔍" },
+    ],
+  },
+  animals: {
+    name: "Animals",
+    icon: "🐾",
+    data: ANIMALS,
+    modes: [
+      { id: "picture", label: "Pictures", icon: "🦁" },
+      { id: "sound",   label: "Sounds",   icon: "🔊" },
+      { id: "baby",    label: "Babies",   icon: "🐣" },
+      { id: "clue",    label: "Clues",    icon: "🔍" },
+    ],
+  },
+};
+
 const screens = {
+  topics:  document.getElementById("topics"),
   home:    document.getElementById("home"),
   quiz:    document.getElementById("quiz"),
   results: document.getElementById("results"),
 };
 
 const els = {
+  homeTitle:     document.getElementById("home-title"),
+  modeGrid:      document.getElementById("mode-grid"),
   questionText:  document.getElementById("question-text"),
   questionMedia: document.getElementById("question-media"),
   choices:       document.getElementById("choices"),
@@ -31,6 +59,7 @@ const els = {
 };
 
 const state = {
+  topic: null,
   mode: null,
   queue: [],
   index: 0,
@@ -77,7 +106,7 @@ function soundFinish() {
   [523, 659, 784, 1046].forEach((f, i) => playTone(f, 0.22, "triangle", 0.14, i * 0.14));
 }
 
-// ---------- Speech (read clues aloud) ----------
+// ---------- Speech synthesis (read clues / sounds aloud) ----------
 const speechSupported = "speechSynthesis" in window;
 function speak(text) {
   if (!speechSupported) return;
@@ -96,7 +125,7 @@ const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognitionSupported = !!SR;
 let recognition = null;
 let listening = false;
-let micDisabled = false; // turned on if permission is denied
+let micDisabled = false;
 
 function setupRecognition() {
   if (!recognitionSupported || recognition) return;
@@ -121,12 +150,11 @@ function setListeningUI(on) {
 function startListening() {
   if (!recognitionSupported || micDisabled || state.locked) return;
   setupRecognition();
-  stopSpeech(); // don't capture the read-aloud voice
+  stopSpeech();
   try {
     recognition.start();
     setListeningUI(true);
   } catch (_) {
-    // Already started — toggle off
     recognition.stop();
   }
 }
@@ -143,9 +171,9 @@ function normalize(s) {
   return s.toLowerCase().replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function phraseMatchesCountry(phrase, country) {
+function phraseMatchesItem(phrase, item) {
   const p = " " + normalize(phrase) + " ";
-  const candidates = [country.name, ...(country.aliases || [])];
+  const candidates = [item.name, ...(item.aliases || [])];
   for (const cand of candidates) {
     const c = " " + normalize(cand) + " ";
     if (p.includes(c)) return true;
@@ -163,23 +191,22 @@ function onSpeechResult(event) {
   }
   if (heard.length === 0) return;
 
-  // Match against the 4 buttons currently on screen.
+  const pool = TOPICS[state.topic].data;
   const buttons = Array.from(els.choices.querySelectorAll(".choice"));
   const candidates = buttons.map((b) => {
-    const name = (b.querySelector("span")?.textContent || b.textContent || "").trim();
-    return { btn: b, country: COUNTRIES.find((c) => c.name === name) };
-  }).filter((x) => x.country);
+    const name = (b.querySelector(".choice-label")?.textContent || b.textContent || "").trim();
+    return { btn: b, item: pool.find((x) => x.name === name) };
+  }).filter((x) => x.item);
 
   for (const phrase of heard) {
-    for (const { btn, country } of candidates) {
-      if (phraseMatchesCountry(phrase, country)) {
+    for (const { btn, item } of candidates) {
+      if (phraseMatchesItem(phrase, item)) {
         btn.click();
         return;
       }
     }
   }
 
-  // No match — gentle nudge that disappears so the next question stays clean.
   els.feedback.textContent = `I heard "${heard[0]}". Try again!`;
   els.feedback.className = "feedback bad";
   setTimeout(() => {
@@ -208,13 +235,38 @@ function show(name) {
   screens[name].classList.add("active");
 }
 
+// ---------- Topic & home screens ----------
+function showTopics() {
+  state.topic = null;
+  show("topics");
+}
+
+function openTopic(topicId) {
+  const topic = TOPICS[topicId];
+  if (!topic) return;
+  state.topic = topicId;
+  els.homeTitle.textContent = `${topic.name} ${topic.icon}`;
+  els.modeGrid.innerHTML = "";
+  for (const m of topic.modes) {
+    const btn = document.createElement("button");
+    btn.className = "mode-card";
+    btn.dataset.mode = m.id;
+    btn.innerHTML = `<span class="mode-icon" aria-hidden="true">${m.icon}</span>` +
+                    `<span class="mode-label">${m.label}</span>`;
+    btn.addEventListener("click", () => startQuiz(m.id));
+    els.modeGrid.appendChild(btn);
+  }
+  show("home");
+}
+
 // ---------- Quiz setup ----------
 function startQuiz(mode) {
   state.mode = mode;
-  state.queue = shuffle(COUNTRIES).slice(0, TOTAL_QUESTIONS);
+  const pool = TOPICS[state.topic].data;
+  state.queue = shuffle(pool).slice(0, TOTAL_QUESTIONS);
   state.index = 0;
   state.score = 0;
-  els.qTotal.textContent = TOTAL_QUESTIONS;
+  els.qTotal.textContent = state.queue.length;
   els.score.textContent = "0";
   show("quiz");
   ensureAudio();
@@ -222,7 +274,16 @@ function startQuiz(mode) {
 }
 
 function buildChoices(correct) {
-  const others = shuffle(COUNTRIES.filter((c) => c.code !== correct.code)).slice(0, CHOICE_COUNT - 1);
+  const pool = TOPICS[state.topic].data;
+  let candidates = pool.filter((x) => x.name !== correct.name);
+
+  // Babies mode: avoid distractors that share the same baby name as the
+  // correct answer (e.g. don't put two "calves" in one question).
+  if (state.mode === "baby" && correct.baby) {
+    candidates = candidates.filter((x) => x.baby !== correct.baby);
+  }
+
+  const others = shuffle(candidates).slice(0, CHOICE_COUNT - 1);
   return shuffle([correct, ...others]);
 }
 
@@ -237,13 +298,19 @@ function renderQuestion() {
     setListeningUI(false);
   }
 
-  const country = state.queue[state.index];
-  state.current = country;
+  const item = state.queue[state.index];
+  state.current = item;
   els.qNumber.textContent = state.index + 1;
 
-  const choices = buildChoices(country);
+  const choices = buildChoices(item);
   els.questionMedia.innerHTML = "";
 
+  if (state.topic === "geography") renderGeographyQuestion(item, choices);
+  else if (state.topic === "animals") renderAnimalQuestion(item, choices);
+}
+
+// ---------- Geography modes ----------
+function renderGeographyQuestion(country, choices) {
   if (state.mode === "flag") {
     els.questionText.textContent = "Which country is this?";
     const img = new Image();
@@ -275,13 +342,44 @@ function renderQuestion() {
   }
 }
 
-function buildClueCard(country) {
+// ---------- Animal modes ----------
+function renderAnimalQuestion(animal, choices) {
+  if (state.mode === "picture") {
+    els.questionText.textContent = "Which animal is this?";
+    const big = document.createElement("div");
+    big.className = "emoji-big";
+    big.textContent = animal.emoji;
+    els.questionMedia.appendChild(big);
+    renderAnimalChoices(choices);
+  } else if (state.mode === "sound") {
+    els.questionText.textContent = "Who makes this sound?";
+    els.questionMedia.appendChild(buildBigTextCard(animal.sound, "sound-text", animal.sound));
+    renderAnimalChoices(choices);
+  } else if (state.mode === "baby") {
+    els.questionText.textContent = "Whose baby am I?";
+    const card = buildBigTextCard(
+      animal.baby,
+      "baby-text",
+      `My baby is called a ${animal.baby}.`,
+      "My baby is called…"
+    );
+    els.questionMedia.appendChild(card);
+    renderAnimalChoices(choices);
+  } else if (state.mode === "clue") {
+    els.questionText.textContent = "Which animal am I?";
+    els.questionMedia.appendChild(buildClueCard(animal));
+    renderAnimalChoices(choices);
+  }
+}
+
+// ---------- Shared question cards ----------
+function buildClueCard(item) {
   const wrap = document.createElement("div");
   wrap.className = "clue-card";
 
   const list = document.createElement("ul");
   list.className = "clue-list";
-  for (const text of country.clues) {
+  for (const text of item.clues) {
     const li = document.createElement("li");
     li.textContent = text;
     list.appendChild(li);
@@ -289,27 +387,56 @@ function buildClueCard(country) {
   wrap.appendChild(list);
 
   if (speechSupported) {
-    const speakBtn = document.createElement("button");
-    speakBtn.type = "button";
-    speakBtn.className = "speak-btn";
-    speakBtn.setAttribute("aria-label", "Read clues aloud");
-    speakBtn.textContent = "🔊 Read aloud";
-    speakBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      speak(country.clues.join(". "));
-    });
-    wrap.appendChild(speakBtn);
+    wrap.appendChild(makeSpeakBtn(item.clues.join(". "), "Read clues aloud"));
   }
-
   return wrap;
 }
 
+function buildBigTextCard(text, textClass, speakText, captionText) {
+  const wrap = document.createElement("div");
+  wrap.className = "big-text-card";
+
+  if (captionText) {
+    const cap = document.createElement("div");
+    cap.className = "big-text-caption";
+    cap.textContent = captionText;
+    wrap.appendChild(cap);
+  }
+
+  const big = document.createElement("div");
+  big.className = "big-text " + textClass;
+  big.textContent = text;
+  wrap.appendChild(big);
+
+  if (speechSupported && speakText) {
+    wrap.appendChild(makeSpeakBtn(speakText, "Read aloud"));
+  }
+  return wrap;
+}
+
+function makeSpeakBtn(textToSpeak, ariaLabel) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "speak-btn";
+  btn.setAttribute("aria-label", ariaLabel);
+  btn.textContent = "🔊 Read aloud";
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    speak(textToSpeak);
+  });
+  return btn;
+}
+
+// ---------- Choice renderers ----------
 function renderTextChoices(choices) {
   els.choices.innerHTML = "";
   for (const c of choices) {
     const btn = document.createElement("button");
-    btn.className = "choice";
-    btn.textContent = c.name;
+    btn.className = "choice text-only";
+    const label = document.createElement("span");
+    label.className = "choice-label";
+    label.textContent = c.name;
+    btn.appendChild(label);
     btn.addEventListener("click", () => onAnswer(btn, c));
     els.choices.appendChild(btn);
   }
@@ -324,6 +451,7 @@ function renderFlagChoices(choices) {
     img.src = FLAG_URL(c.code);
     img.alt = c.name + " flag";
     const label = document.createElement("span");
+    label.className = "choice-label";
     label.textContent = c.name;
     btn.appendChild(img);
     btn.appendChild(label);
@@ -332,13 +460,33 @@ function renderFlagChoices(choices) {
   }
 }
 
-function onAnswer(btn, country) {
+function renderAnimalChoices(choices) {
+  els.choices.innerHTML = "";
+  for (const a of choices) {
+    const btn = document.createElement("button");
+    btn.className = "choice animal-choice";
+    const icon = document.createElement("span");
+    icon.className = "choice-emoji";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = a.emoji;
+    const label = document.createElement("span");
+    label.className = "choice-label";
+    label.textContent = a.name;
+    btn.appendChild(icon);
+    btn.appendChild(label);
+    btn.addEventListener("click", () => onAnswer(btn, a));
+    els.choices.appendChild(btn);
+  }
+}
+
+// ---------- Answer handling ----------
+function onAnswer(btn, item) {
   if (state.locked) return;
   state.locked = true;
   const buttons = els.choices.querySelectorAll(".choice");
   buttons.forEach((b) => (b.disabled = true));
 
-  if (country.code === state.current.code) {
+  if (item.name === state.current.name) {
     btn.classList.add("correct");
     state.score += 1;
     els.score.textContent = state.score;
@@ -347,9 +495,8 @@ function onAnswer(btn, country) {
     soundCorrect();
   } else {
     btn.classList.add("wrong");
-    // Highlight the correct one so the child learns.
-    buttons.forEach((b, i) => {
-      const choiceName = b.querySelector("span")?.textContent || b.textContent;
+    buttons.forEach((b) => {
+      const choiceName = b.querySelector(".choice-label")?.textContent || b.textContent;
       if (choiceName === state.current.name) b.classList.add("correct");
     });
     els.feedback.textContent = pick(TRY_AGAIN) + " It was " + state.current.name + ".";
@@ -373,23 +520,25 @@ function nextQuestion() {
 }
 
 function finishQuiz() {
+  const total = state.queue.length;
   const score = state.score;
-  const stars = Math.max(1, Math.round((score / TOTAL_QUESTIONS) * 5));
+  const stars = Math.max(1, Math.round((score / total) * 5));
   els.resultStars.textContent = "⭐".repeat(stars) + "☆".repeat(5 - stars);
   els.resultTitle.textContent =
-    score === TOTAL_QUESTIONS ? "Perfect! 🎉"
-    : score >= 7 ? "Amazing! 🌟"
-    : score >= 4 ? "Good try! 👍"
+    score === total ? "Perfect! 🎉"
+    : score >= Math.ceil(total * 0.7) ? "Amazing! 🌟"
+    : score >= Math.ceil(total * 0.4) ? "Good try! 👍"
     : "Nice try! 💪";
-  els.resultScore.textContent = "You got " + score + " out of " + TOTAL_QUESTIONS + "!";
+  els.resultScore.textContent = "You got " + score + " out of " + total + "!";
   show("results");
   soundFinish();
 }
 
 // ---------- Wire up ----------
-document.querySelectorAll(".mode-card").forEach((card) => {
-  card.addEventListener("click", () => startQuiz(card.dataset.mode));
+document.querySelectorAll("#topic-grid .mode-card").forEach((card) => {
+  card.addEventListener("click", () => openTopic(card.dataset.topic));
 });
+document.getElementById("topics-btn").addEventListener("click", showTopics);
 els.nextBtn.addEventListener("click", nextQuestion);
 if (els.micBtn) {
   els.micBtn.addEventListener("click", () => {
@@ -401,6 +550,12 @@ if (els.micBtn) {
     }
   });
 }
-document.getElementById("home-btn").addEventListener("click", () => show("home"));
+document.getElementById("home-btn").addEventListener("click", () => {
+  if (state.topic) openTopic(state.topic);
+  else showTopics();
+});
 document.getElementById("play-again").addEventListener("click", () => startQuiz(state.mode));
-document.getElementById("back-home").addEventListener("click", () => show("home"));
+document.getElementById("back-home").addEventListener("click", () => {
+  if (state.topic) openTopic(state.topic);
+  else showTopics();
+});

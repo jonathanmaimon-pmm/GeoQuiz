@@ -1,14 +1,27 @@
-# Geography Quiz 🌍
+# Trivia Time 🎉
 
-A bright, friendly geography quiz for little explorers (built with a 5-year-old in mind).
+A bright, friendly trivia app for little learners (built with a 5-year-old in mind). Pick a topic, then pick a game. Each round is 10 questions with big tappable buttons, cheerful sounds, voice answers, and a star score at the end. Wrong answers reveal the correct answer so kids learn as they play.
 
-## Games
+## Topics & games
 
+### 🌍 Geography (20 countries)
 - **Flags** — see a flag, pick the country.
 - **Shapes** — see a country's silhouette, pick which country it is.
-- **Symbols** — see a cultural emoji (🍣, 🗽, 🦘…) and pick the country.
+- **Symbols** — see a cultural emoji (🍣, 🗽, 🦘…), pick the country.
+- **Clues** — read (or hear) 3 short facts, pick the country.
 
-Each round is 10 questions with big tappable buttons, cheerful sounds, and a star score at the end. Wrong answers reveal the correct country so kids can learn as they play.
+### 🐾 Animals (~20 animals across mammals, birds, reptiles, amphibians, fish, insects)
+- **Pictures** — see the animal, pick its name.
+- **Sounds** — see (or hear) the sound it makes ("Moooo!"), pick the animal.
+- **Babies** — see the baby's name ("Joey", "Tadpole"), pick the parent.
+- **Clues** — read (or hear) 3 short facts, pick the animal.
+
+## Accessibility for pre-readers
+
+- **🔊 Read aloud** on Clue/Sound/Baby modes uses the browser's speech synthesis to read the question out loud — kids who can't yet read can play independently.
+- **🎤 Say it!** uses speech recognition: the child shouts the answer ("Lion!", "Brazil!", "Italia!") and the matching choice is auto-selected. Kid-friendly aliases are supported (USA = America, UK = Britain = England, Bunny = Rabbit, …).
+
+Voice features need Chrome, Edge, or Safari (iOS 14.5+); Firefox lacks SpeechRecognition, so the mic button hides itself there.
 
 ## Run locally
 
@@ -21,21 +34,14 @@ python3 -m http.server 8000
 
 ## Deploy to GitHub Pages
 
-Two options:
-
-**Option A — via the included workflow (recommended):**
-1. Merge this branch into `main`.
-2. On GitHub, go to **Settings → Pages** and set **Source** to **GitHub Actions**.
-3. Every push to `main` will publish the site automatically. The URL appears in the workflow run summary (usually `https://<user>.github.io/<repo>/`).
-
-**Option B — branch-based Pages:**
-1. Push to a branch (e.g. `main`).
-2. **Settings → Pages → Source: Deploy from a branch** → pick `main` / `/ (root)`.
+1. Merge this branch into `main` (or set it as the default branch).
+2. **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+3. Every push to the active branch publishes automatically; the URL appears in the workflow run summary (typically `https://<user>.github.io/<repo>/`).
 
 ## Credits / assets
 
 - Flags from the [flag-icons](https://github.com/lipis/flag-icons) project (SVG).
 - Country silhouettes from the [mapsicon](https://github.com/djaiss/mapsicon) project (SVG).
-- Cultural icons are Unicode emoji rendered by the device.
+- Animal images, country symbols, and topic icons are Unicode emoji rendered by the device.
 
-Both image sources are loaded over HTTPS at runtime, so the app needs an internet connection the first time a flag or shape is shown (browsers will cache them afterward).
+Flag and shape images are loaded over HTTPS at runtime, so the app needs an internet connection the first time a country is shown (browsers cache them afterward). Animal modes work fully offline.
