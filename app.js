@@ -26,8 +26,8 @@ const TOPICS = {
     icon: "🐾",
     data: ANIMALS,
     modes: [
-      { id: "picture", label: "Pictures", icon: "🦁" },
-      { id: "sound",   label: "Sounds",   icon: "🔊" },
+      { id: "picture", label: "Pictures", icon: "📷" },
+      { id: "habitat", label: "Habitats", icon: "🌍" },
       { id: "baby",    label: "Babies",   icon: "🐣" },
       { id: "clue",    label: "Clues",    icon: "🔍" },
     ],
@@ -67,6 +67,40 @@ const state = {
   current: null,
   locked: false,
 };
+
+// ---------- Wikipedia photo fetcher (used by Animals: Pictures + Habitat) ----------
+// Resolves a Wikipedia article title to a real photo URL via the REST summary
+// endpoint (CORS-enabled). Results are cached per session; failures fall back
+// to the animal's emoji.
+const photoCache = {};
+const photoPending = {};
+function fetchWikiPhoto(article) {
+  if (!article) return Promise.resolve(null);
+  if (article in photoCache) return Promise.resolve(photoCache[article]);
+  if (photoPending[article]) return photoPending[article];
+  photoPending[article] = fetch(
+    "https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(article)
+  )
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => {
+      const src = j && (j.thumbnail && j.thumbnail.source);
+      // Wikipedia thumbnails default to ~220-320px; bump to 640px when possible.
+      const url = src ? src.replace(/\/\d+px-/, "/640px-") : null;
+      photoCache[article] = url;
+      return url;
+    })
+    .catch(() => {
+      photoCache[article] = null;
+      return null;
+    });
+  return photoPending[article];
+}
+
+function preloadAnimalPhotos() {
+  for (const a of ANIMALS) {
+    if (a.wiki) fetchWikiPhoto(a.wiki);
+  }
+}
 
 // ---------- Audio (simple beeps via Web Audio API) ----------
 let audioCtx = null;
@@ -191,7 +225,7 @@ function onSpeechResult(event) {
   }
   if (heard.length === 0) return;
 
-  const pool = TOPICS[state.topic].data;
+  const pool = state.mode === "habitat" ? HABITATS : TOPICS[state.topic].data;
   const buttons = Array.from(els.choices.querySelectorAll(".choice"));
   const candidates = buttons.map((b) => {
     const name = (b.querySelector(".choice-label")?.textContent || b.textContent || "").trim();
@@ -256,6 +290,7 @@ function openTopic(topicId) {
     btn.addEventListener("click", () => startQuiz(m.id));
     els.modeGrid.appendChild(btn);
   }
+  if (topicId === "animals") preloadAnimalPhotos();
   show("home");
 }
 
@@ -274,16 +309,34 @@ function startQuiz(mode) {
 }
 
 function buildChoices(correct) {
+  // Habitat mode answers are habitats, not animals.
+  if (state.mode === "habitat") {
+    const correctHabitat = HABITATS.find((h) => h.name === correct.habitat);
+    if (!correctHabitat) return [];
+    const others = shuffle(HABITATS.filter((h) => h.name !== correctHabitat.name))
+      .slice(0, CHOICE_COUNT - 1);
+    return shuffle([correctHabitat, ...others]);
+  }
+
   const pool = TOPICS[state.topic].data;
   let candidates = pool.filter((x) => x.name !== correct.name);
 
-  // Babies mode: avoid distractors that share the same baby name as the
-  // correct answer (e.g. don't put two "calves" in one question).
+  // Babies mode: don't put two animals with the same baby name in one question.
   if (state.mode === "baby" && correct.baby) {
     candidates = candidates.filter((x) => x.baby !== correct.baby);
   }
 
-  const others = shuffle(candidates).slice(0, CHOICE_COUNT - 1);
+  // Smart distractors: prefer same-group (mammal vs mammal) so the kid can't
+  // eliminate by category alone. Fill remaining slots with other groups.
+  if (correct.group) {
+    const same = shuffle(candidates.filter((x) => x.group === correct.group));
+    const other = shuffle(candidates.filter((x) => x.group !== correct.group));
+    candidates = [...same, ...other];
+  } else {
+    candidates = shuffle(candidates);
+  }
+
+  const others = candidates.slice(0, CHOICE_COUNT - 1);
   return shuffle([correct, ...others]);
 }
 
@@ -346,15 +399,13 @@ function renderGeographyQuestion(country, choices) {
 function renderAnimalQuestion(animal, choices) {
   if (state.mode === "picture") {
     els.questionText.textContent = "Which animal is this?";
-    const big = document.createElement("div");
-    big.className = "emoji-big";
-    big.textContent = animal.emoji;
-    els.questionMedia.appendChild(big);
-    renderAnimalChoices(choices);
-  } else if (state.mode === "sound") {
-    els.questionText.textContent = "Who makes this sound?";
-    els.questionMedia.appendChild(buildBigTextCard(animal.sound, "sound-text", animal.sound));
-    renderAnimalChoices(choices);
+    showAnimalPhoto(animal, /*showLabel=*/ false);
+    // Text-only choices — the photo is the visual; no emoji cheat on choices.
+    renderTextChoices(choices);
+  } else if (state.mode === "habitat") {
+    els.questionText.textContent = "Where do I live?";
+    showAnimalPhoto(animal, /*showLabel=*/ true);
+    renderHabitatChoices(choices);
   } else if (state.mode === "baby") {
     els.questionText.textContent = "Whose baby am I?";
     const card = buildBigTextCard(
@@ -364,11 +415,71 @@ function renderAnimalQuestion(animal, choices) {
       "My baby is called…"
     );
     els.questionMedia.appendChild(card);
-    renderAnimalChoices(choices);
+    renderTextChoices(choices);
   } else if (state.mode === "clue") {
     els.questionText.textContent = "Which animal am I?";
     els.questionMedia.appendChild(buildClueCard(animal));
-    renderAnimalChoices(choices);
+    renderTextChoices(choices);
+  }
+}
+
+function showAnimalPhoto(animal, showLabel) {
+  const wrap = document.createElement("div");
+  wrap.className = "animal-display";
+
+  const slot = document.createElement("div");
+  slot.className = "photo-slot";
+  slot.textContent = "📷";
+  wrap.appendChild(slot);
+
+  if (showLabel) {
+    const label = document.createElement("div");
+    label.className = "animal-label";
+    label.textContent = animal.name;
+    wrap.appendChild(label);
+  }
+
+  els.questionMedia.appendChild(wrap);
+
+  // Race-guard token: only update if this question is still current.
+  const token = animal.id + ":" + state.index;
+  slot.dataset.token = token;
+
+  fetchWikiPhoto(animal.wiki).then((url) => {
+    if (slot.dataset.token !== token) return;
+    slot.textContent = "";
+    if (url) {
+      const img = new Image();
+      img.src = url;
+      img.alt = animal.name;
+      img.className = "animal-photo";
+      slot.appendChild(img);
+    } else {
+      // Fallback: emoji at large size if Wikipedia fetch failed.
+      const big = document.createElement("div");
+      big.className = "emoji-big";
+      big.textContent = animal.emoji || "🐾";
+      slot.appendChild(big);
+    }
+  });
+}
+
+function renderHabitatChoices(choices) {
+  els.choices.innerHTML = "";
+  for (const h of choices) {
+    const btn = document.createElement("button");
+    btn.className = "choice habitat-choice";
+    const icon = document.createElement("span");
+    icon.className = "choice-emoji";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = h.emoji;
+    const label = document.createElement("span");
+    label.className = "choice-label";
+    label.textContent = h.name;
+    btn.appendChild(icon);
+    btn.appendChild(label);
+    btn.addEventListener("click", () => onAnswer(btn, h));
+    els.choices.appendChild(btn);
   }
 }
 
@@ -460,46 +571,40 @@ function renderFlagChoices(choices) {
   }
 }
 
-function renderAnimalChoices(choices) {
-  els.choices.innerHTML = "";
-  for (const a of choices) {
-    const btn = document.createElement("button");
-    btn.className = "choice animal-choice";
-    const icon = document.createElement("span");
-    icon.className = "choice-emoji";
-    icon.setAttribute("aria-hidden", "true");
-    icon.textContent = a.emoji;
-    const label = document.createElement("span");
-    label.className = "choice-label";
-    label.textContent = a.name;
-    btn.appendChild(icon);
-    btn.appendChild(label);
-    btn.addEventListener("click", () => onAnswer(btn, a));
-    els.choices.appendChild(btn);
-  }
+// ---------- Answer handling ----------
+function correctAnswerName() {
+  if (state.mode === "habitat") return state.current.habitat;
+  return state.current.name;
 }
 
-// ---------- Answer handling ----------
+function correctAnswerLabel() {
+  if (state.mode === "habitat") return "the " + state.current.habitat.toLowerCase();
+  return state.current.name;
+}
+
 function onAnswer(btn, item) {
   if (state.locked) return;
   state.locked = true;
   const buttons = els.choices.querySelectorAll(".choice");
   buttons.forEach((b) => (b.disabled = true));
 
-  if (item.name === state.current.name) {
+  const correctName = correctAnswerName();
+  const correctLabel = correctAnswerLabel();
+
+  if (item.name === correctName) {
     btn.classList.add("correct");
     state.score += 1;
     els.score.textContent = state.score;
-    els.feedback.textContent = pick(PRAISE) + " It's " + state.current.name + ".";
+    els.feedback.textContent = pick(PRAISE) + " It's " + correctLabel + "!";
     els.feedback.classList.add("good");
     soundCorrect();
   } else {
     btn.classList.add("wrong");
     buttons.forEach((b) => {
       const choiceName = b.querySelector(".choice-label")?.textContent || b.textContent;
-      if (choiceName === state.current.name) b.classList.add("correct");
+      if (choiceName === correctName) b.classList.add("correct");
     });
-    els.feedback.textContent = pick(TRY_AGAIN) + " It was " + state.current.name + ".";
+    els.feedback.textContent = pick(TRY_AGAIN) + " It was " + correctLabel + ".";
     els.feedback.classList.add("bad");
     soundWrong();
   }

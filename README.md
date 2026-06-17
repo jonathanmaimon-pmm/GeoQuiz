@@ -10,10 +10,10 @@ A bright, friendly trivia app for little learners (built with a 5-year-old in mi
 - **Symbols** — see a cultural emoji (🍣, 🗽, 🦘…), pick the country.
 - **Clues** — read (or hear) 3 short facts, pick the country.
 
-### 🐾 Animals (~20 animals across mammals, birds, reptiles, amphibians, fish, insects)
-- **Pictures** — see the animal, pick its name.
-- **Sounds** — see (or hear) the sound it makes ("Moooo!"), pick the animal.
-- **Babies** — see the baby's name ("Joey", "Tadpole"), pick the parent.
+### 🐾 Animals (20 animals — capybara, axolotl, pangolin, sloth, narwhal, quokka, platypus, red panda, hedgehog… across mammals, birds, reptiles, amphibians, ocean creatures, and insects)
+- **Pictures** — see a real photo of the animal (fetched live from Wikipedia), pick its name. Lesser-known animals and same-group distractors make this a real challenge, not a 2-year-old's emoji match.
+- **Habitats** — see the animal, pick where it lives (Rainforest / Ocean / Polar / Wetland / Forest / Garden / Desert).
+- **Babies** — see the baby's name ("Joey", "Pangopup", "Puggle", "Hoglet"), pick the parent.
 - **Clues** — read (or hear) 3 short facts, pick the animal.
 
 ## Accessibility for pre-readers
@@ -42,6 +42,7 @@ python3 -m http.server 8000
 
 - Flags from the [flag-icons](https://github.com/lipis/flag-icons) project (SVG).
 - Country silhouettes from the [mapsicon](https://github.com/djaiss/mapsicon) project (SVG).
-- Animal images, country symbols, and topic icons are Unicode emoji rendered by the device.
+- Animal photos are fetched from the Wikipedia REST `page/summary` API (`thumbnail.source`, CORS-enabled).
+- Country symbols, habitat icons, and topic icons are Unicode emoji rendered by the device.
 
-Flag and shape images are loaded over HTTPS at runtime, so the app needs an internet connection the first time a country is shown (browsers cache them afterward). Animal modes work fully offline.
+All image sources load over HTTPS at runtime, so the app needs an internet connection the first time a country or animal is shown; browsers cache them afterward.
