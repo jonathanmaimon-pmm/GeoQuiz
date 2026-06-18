@@ -69,25 +69,30 @@ const state = {
 };
 
 // ---------- Wikipedia photo fetcher (used by Animals: Pictures + Habitat) ----------
-// Resolves a Wikipedia article title to a real photo URL via the REST summary
-// endpoint (CORS-enabled). Results are cached per session; failures fall back
-// to the animal's emoji.
+// Uses the action=query / prop=pageimages endpoint with `origin=*` for
+// explicit CORS support — more reliable than the REST summary endpoint.
+// Results are cached per session; failures fall back to the animal's emoji.
 const photoCache = {};
 const photoPending = {};
 function fetchWikiPhoto(article) {
   if (!article) return Promise.resolve(null);
   if (article in photoCache) return Promise.resolve(photoCache[article]);
   if (photoPending[article]) return photoPending[article];
-  photoPending[article] = fetch(
-    "https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(article)
-  )
+
+  const apiUrl =
+    "https://en.wikipedia.org/w/api.php" +
+    "?action=query&prop=pageimages&format=json" +
+    "&pithumbsize=640&redirects=1&origin=*" +
+    "&titles=" + encodeURIComponent(article);
+
+  photoPending[article] = fetch(apiUrl)
     .then((r) => (r.ok ? r.json() : null))
     .then((j) => {
-      const src = j && (j.thumbnail && j.thumbnail.source);
-      // Wikipedia thumbnails default to ~220-320px; bump to 640px when possible.
-      const url = src ? src.replace(/\/\d+px-/, "/640px-") : null;
-      photoCache[article] = url;
-      return url;
+      const pages = j && j.query && j.query.pages;
+      const page = pages ? Object.values(pages)[0] : null;
+      const src = page && page.thumbnail && page.thumbnail.source;
+      photoCache[article] = src || null;
+      return src || null;
     })
     .catch(() => {
       photoCache[article] = null;
@@ -429,7 +434,10 @@ function showAnimalPhoto(animal, showLabel) {
 
   const slot = document.createElement("div");
   slot.className = "photo-slot";
-  slot.textContent = "📷";
+  const spinner = document.createElement("div");
+  spinner.className = "photo-spinner";
+  spinner.setAttribute("aria-label", "Loading photo");
+  slot.appendChild(spinner);
   wrap.appendChild(slot);
 
   if (showLabel) {
@@ -445,22 +453,31 @@ function showAnimalPhoto(animal, showLabel) {
   const token = animal.id + ":" + state.index;
   slot.dataset.token = token;
 
+  const showEmojiFallback = () => {
+    if (slot.dataset.token !== token) return;
+    slot.innerHTML = "";
+    const big = document.createElement("div");
+    big.className = "emoji-big";
+    big.textContent = animal.emoji || "🐾";
+    slot.appendChild(big);
+  };
+
   fetchWikiPhoto(animal.wiki).then((url) => {
     if (slot.dataset.token !== token) return;
-    slot.textContent = "";
-    if (url) {
-      const img = new Image();
-      img.src = url;
-      img.alt = animal.name;
-      img.className = "animal-photo";
-      slot.appendChild(img);
-    } else {
-      // Fallback: emoji at large size if Wikipedia fetch failed.
-      const big = document.createElement("div");
-      big.className = "emoji-big";
-      big.textContent = animal.emoji || "🐾";
-      slot.appendChild(big);
+    if (!url) {
+      showEmojiFallback();
+      return;
     }
+    const img = new Image();
+    img.alt = animal.name;
+    img.className = "animal-photo";
+    img.onload = () => {
+      if (slot.dataset.token !== token) return;
+      slot.innerHTML = "";
+      slot.appendChild(img);
+    };
+    img.onerror = showEmojiFallback;
+    img.src = url;
   });
 }
 

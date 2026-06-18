@@ -219,6 +219,17 @@ body {
   font-size: 2rem;
   color: var(--ink-soft);
 }
+.photo-spinner {
+  width: 52px;
+  height: 52px;
+  border: 6px solid rgba(58,166,255,0.18);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: photo-spin 0.8s linear infinite;
+}
+@keyframes photo-spin {
+  to { transform: rotate(360deg); }
+}
 .animal-photo {
   max-width: 100%;
   max-height: 100%;
