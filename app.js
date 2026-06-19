@@ -148,15 +148,24 @@ function soundFinish() {
 // ---------- Speech synthesis (read clues / sounds aloud) ----------
 const speechSupported = "speechSynthesis" in window;
 function speak(text) {
-  if (!speechSupported) return;
-  speechSynthesis.cancel();
+  if (!speechSupported || !text) return;
+  // Only cancel when something is actually speaking. A no-op cancel can leave
+  // Chrome's synthesis engine paused, after which subsequent speak() calls
+  // queue but never play. Resume() before speak() is the documented fix.
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel();
+  }
+  speechSynthesis.resume();
   const u = new SpeechSynthesisUtterance(text);
   u.rate = 0.92;
   u.pitch = 1.05;
   speechSynthesis.speak(u);
 }
 function stopSpeech() {
-  if (speechSupported) speechSynthesis.cancel();
+  if (!speechSupported) return;
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel();
+  }
 }
 
 // ---------- Speech recognition (shout-the-answer) ----------
@@ -416,7 +425,7 @@ function renderAnimalQuestion(animal, choices) {
     const card = buildBigTextCard(
       animal.baby,
       "baby-text",
-      `My baby is called a ${animal.baby}.`,
+      `My baby is called ${animal.baby}.`,
       "My baby is called…"
     );
     els.questionMedia.appendChild(card);
