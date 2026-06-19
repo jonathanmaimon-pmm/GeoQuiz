@@ -243,15 +243,201 @@ const ANIMALS = [
       "I sip sweet nectar through a long curly straw-tongue.",
     ],
   },
-];
 
-// Habitat answer choices used by the Habitat mode.
-const HABITATS = [
-  { name: "Rainforest", emoji: "🌴", aliases: ["the rainforest", "jungle"] },
-  { name: "Ocean",      emoji: "🌊", aliases: ["the ocean", "sea", "the sea"] },
-  { name: "Polar",      emoji: "❄️", aliases: ["arctic", "antarctica", "the arctic", "polar regions", "cold places"] },
-  { name: "Wetland",    emoji: "🪷", aliases: ["wetlands", "pond", "river", "lake", "swamp"] },
-  { name: "Forest",     emoji: "🌲", aliases: ["the forest", "woods", "the woods"] },
-  { name: "Garden",     emoji: "🌷", aliases: ["gardens", "the garden", "backyard"] },
-  { name: "Desert",     emoji: "🏜️", aliases: ["the desert", "deserts"] },
+  // --- More mammals ---
+  {
+    id: "tiger", name: "Tiger", emoji: "🐯",
+    wiki: "Tiger", group: "mammal", habitat: "Forest",
+    aliases: ["tigers"],
+    baby: "Cub",
+    clues: [
+      "I have orange fur with black stripes.",
+      "I am the biggest cat in the whole world.",
+      "I love to swim, which is rare for a cat!",
+    ],
+  },
+  {
+    id: "cheetah", name: "Cheetah", emoji: "🐆",
+    wiki: "Cheetah", group: "mammal", habitat: "Savanna",
+    aliases: ["cheetahs"],
+    baby: "Cub",
+    clues: [
+      "I am the fastest land animal in the world.",
+      "I have small black spots all over my golden fur.",
+      "I can sprint as fast as a car on the highway!",
+    ],
+  },
+  {
+    id: "zebra", name: "Zebra", emoji: "🦓",
+    wiki: "Zebra", group: "mammal", habitat: "Savanna",
+    aliases: ["zebras"],
+    baby: "Foal",
+    clues: [
+      "I have black-and-white stripes all over my body.",
+      "I look like a horse wearing pajamas!",
+      "I live on the African grasslands.",
+    ],
+  },
+  {
+    id: "rhinoceros", name: "Rhinoceros", emoji: "🦏",
+    wiki: "Rhinoceros", group: "mammal", habitat: "Savanna",
+    aliases: ["rhino", "rhinos", "rhinoceroses"],
+    baby: "Calf",
+    clues: [
+      "I have one or two big horns on my nose.",
+      "My skin is so thick it's like armor.",
+      "I love to roll around in mud to stay cool.",
+    ],
+  },
+  {
+    id: "polar_bear", name: "Polar Bear", emoji: "🐻‍❄️",
+    wiki: "Polar_bear", group: "mammal", habitat: "Polar",
+    aliases: ["polar bears", "ice bear"],
+    baby: "Cub",
+    clues: [
+      "I have thick white fur to stay warm in the snow.",
+      "I am the biggest bear in the world.",
+      "I love to swim in the icy cold Arctic ocean.",
+    ],
+  },
+  {
+    id: "koala", name: "Koala", emoji: "🐨",
+    wiki: "Koala", group: "mammal", habitat: "Forest",
+    aliases: ["koalas"],
+    baby: "Joey",
+    clues: [
+      "I sleep almost the whole day high in eucalyptus trees.",
+      "I am fluffy with big round ears and a black nose.",
+      "I live in Australia and I am a marsupial.",
+    ],
+  },
+  {
+    id: "wolf", name: "Wolf", emoji: "🐺",
+    wiki: "Wolf", group: "mammal", habitat: "Forest",
+    aliases: ["wolves"],
+    baby: "Pup",
+    clues: [
+      "I howl at the moon when night comes.",
+      "I live and hunt with my family in a pack.",
+      "I look a bit like a wild dog.",
+    ],
+  },
+  {
+    id: "fox", name: "Fox", emoji: "🦊",
+    wiki: "Red_fox", group: "mammal", habitat: "Forest",
+    aliases: ["foxes", "red fox"],
+    baby: "Kit",
+    clues: [
+      "I have a bushy red tail and a pointy face.",
+      "I am very clever and sneaky.",
+      "I sleep in a cozy underground den.",
+    ],
+  },
+  {
+    id: "bat", name: "Bat", emoji: "🦇",
+    wiki: "Bat", group: "mammal", habitat: "Cave",
+    aliases: ["bats"],
+    baby: "Pup",
+    clues: [
+      "I am the only mammal that can really fly.",
+      "I sleep upside down hanging in caves.",
+      "I find my way in the dark by listening for echoes.",
+    ],
+  },
+
+  // --- More birds ---
+  {
+    id: "peacock", name: "Peacock", emoji: "🦚",
+    wiki: "Peafowl", group: "bird", habitat: "Forest",
+    aliases: ["peacocks", "peafowl"],
+    baby: "Chick",
+    clues: [
+      "I have a huge fan of blue, green, and gold feathers.",
+      "I shake my tail to show off and impress friends.",
+      "I look like I'm wearing a fancy costume.",
+    ],
+  },
+  {
+    id: "eagle", name: "Eagle", emoji: "🦅",
+    wiki: "Bald_eagle", group: "bird", habitat: "Mountain",
+    aliases: ["eagles", "bald eagle"],
+    baby: "Eaglet",
+    clues: [
+      "I have sharp eyes and huge strong wings.",
+      "I build my nest high up on cliffs and tall trees.",
+      "I can swoop down very fast to catch a fish.",
+    ],
+  },
+  {
+    id: "parrot", name: "Parrot", emoji: "🦜",
+    wiki: "Parrot", group: "bird", habitat: "Rainforest",
+    aliases: ["parrots", "macaw"],
+    baby: "Chick",
+    clues: [
+      "I have bright rainbow-colored feathers.",
+      "I can copy words that people say!",
+      "I use my strong beak to crack open nuts.",
+    ],
+  },
+  {
+    id: "ostrich", name: "Ostrich", emoji: "🐦",
+    wiki: "Common_ostrich", group: "bird", habitat: "Savanna",
+    aliases: ["ostriches"],
+    baby: "Chick",
+    clues: [
+      "I am the biggest bird in the world.",
+      "I can run super fast but I cannot fly.",
+      "I lay the biggest eggs of any animal.",
+    ],
+  },
+
+  // --- More reptiles ---
+  {
+    id: "crocodile", name: "Crocodile", emoji: "🐊",
+    wiki: "Crocodile", group: "reptile", habitat: "Wetland",
+    aliases: ["crocodiles", "croc", "alligator", "gator"],
+    baby: "Hatchling",
+    clues: [
+      "I have a long snout full of sharp teeth.",
+      "I love hiding in muddy rivers and swamps.",
+      "I look just like a swimming log.",
+    ],
+  },
+
+  // --- More ocean creatures ---
+  {
+    id: "jellyfish", name: "Jellyfish", emoji: "🪼",
+    wiki: "Jellyfish", group: "ocean", habitat: "Ocean",
+    aliases: ["jellyfishes", "jelly", "jellies"],
+    baby: "Polyp",
+    clues: [
+      "I am squishy and almost see-through.",
+      "I drift through the ocean with wiggly tentacles.",
+      "Watch out — some of me can sting!",
+    ],
+  },
+  {
+    id: "starfish", name: "Starfish", emoji: "⭐",
+    wiki: "Starfish", group: "ocean", habitat: "Ocean",
+    aliases: ["starfishes", "sea star", "sea stars"],
+    baby: "Larva",
+    clues: [
+      "I have five arms shaped like a star.",
+      "I crawl very slowly along the ocean floor.",
+      "If I lose an arm, I can grow a new one back!",
+    ],
+  },
+
+  // --- More insects ---
+  {
+    id: "ladybug", name: "Ladybug", emoji: "🐞",
+    wiki: "Coccinellidae", group: "insect", habitat: "Garden",
+    aliases: ["ladybugs", "ladybird", "ladybirds"],
+    baby: "Larva",
+    clues: [
+      "I am a tiny red beetle with little black spots.",
+      "I love to munch on bugs in the garden.",
+      "Lots of people think I bring good luck.",
+    ],
+  },
 ];

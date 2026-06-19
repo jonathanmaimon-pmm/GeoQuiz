@@ -27,7 +27,7 @@ const TOPICS = {
     data: ANIMALS,
     modes: [
       { id: "picture", label: "Pictures", icon: "📷" },
-      { id: "habitat", label: "Habitats", icon: "🌍" },
+      { id: "cropped", label: "Zoomed",   icon: "🔎" },
       { id: "baby",    label: "Babies",   icon: "🐣" },
       { id: "clue",    label: "Clues",    icon: "🔍" },
     ],
@@ -239,7 +239,7 @@ function onSpeechResult(event) {
   }
   if (heard.length === 0) return;
 
-  const pool = state.mode === "habitat" ? HABITATS : TOPICS[state.topic].data;
+  const pool = TOPICS[state.topic].data;
   const buttons = Array.from(els.choices.querySelectorAll(".choice"));
   const candidates = buttons.map((b) => {
     const name = (b.querySelector(".choice-label")?.textContent || b.textContent || "").trim();
@@ -323,15 +323,6 @@ function startQuiz(mode) {
 }
 
 function buildChoices(correct) {
-  // Habitat mode answers are habitats, not animals.
-  if (state.mode === "habitat") {
-    const correctHabitat = HABITATS.find((h) => h.name === correct.habitat);
-    if (!correctHabitat) return [];
-    const others = shuffle(HABITATS.filter((h) => h.name !== correctHabitat.name))
-      .slice(0, CHOICE_COUNT - 1);
-    return shuffle([correctHabitat, ...others]);
-  }
-
   const pool = TOPICS[state.topic].data;
   let candidates = pool.filter((x) => x.name !== correct.name);
 
@@ -413,13 +404,12 @@ function renderGeographyQuestion(country, choices) {
 function renderAnimalQuestion(animal, choices) {
   if (state.mode === "picture") {
     els.questionText.textContent = "Which animal is this?";
-    showAnimalPhoto(animal, /*showLabel=*/ false);
-    // Text-only choices — the photo is the visual; no emoji cheat on choices.
+    showAnimalPhoto(animal);
     renderTextChoices(choices);
-  } else if (state.mode === "habitat") {
-    els.questionText.textContent = "Where do I live?";
-    showAnimalPhoto(animal, /*showLabel=*/ true);
-    renderHabitatChoices(choices);
+  } else if (state.mode === "cropped") {
+    els.questionText.textContent = "Zoom in! Which animal am I?";
+    showCroppedPhoto(animal);
+    renderTextChoices(choices);
   } else if (state.mode === "baby") {
     els.questionText.textContent = "Whose baby am I?";
     const card = buildBigTextCard(
@@ -437,7 +427,7 @@ function renderAnimalQuestion(animal, choices) {
   }
 }
 
-function showAnimalPhoto(animal, showLabel) {
+function showAnimalPhoto(animal) {
   const wrap = document.createElement("div");
   wrap.className = "animal-display";
 
@@ -449,16 +439,8 @@ function showAnimalPhoto(animal, showLabel) {
   slot.appendChild(spinner);
   wrap.appendChild(slot);
 
-  if (showLabel) {
-    const label = document.createElement("div");
-    label.className = "animal-label";
-    label.textContent = animal.name;
-    wrap.appendChild(label);
-  }
-
   els.questionMedia.appendChild(wrap);
 
-  // Race-guard token: only update if this question is still current.
   const token = animal.id + ":" + state.index;
   slot.dataset.token = token;
 
@@ -490,23 +472,85 @@ function showAnimalPhoto(animal, showLabel) {
   });
 }
 
-function renderHabitatChoices(choices) {
-  els.choices.innerHTML = "";
-  for (const h of choices) {
-    const btn = document.createElement("button");
-    btn.className = "choice habitat-choice";
-    const icon = document.createElement("span");
-    icon.className = "choice-emoji";
-    icon.setAttribute("aria-hidden", "true");
-    icon.textContent = h.emoji;
-    const label = document.createElement("span");
-    label.className = "choice-label";
-    label.textContent = h.name;
-    btn.appendChild(icon);
-    btn.appendChild(label);
-    btn.addEventListener("click", () => onAnswer(btn, h));
-    els.choices.appendChild(btn);
+function showCroppedPhoto(animal) {
+  const wrap = document.createElement("div");
+  wrap.className = "animal-display";
+
+  const frame = document.createElement("div");
+  frame.className = "crop-frame";
+  const spinner = document.createElement("div");
+  spinner.className = "photo-spinner";
+  frame.appendChild(spinner);
+  wrap.appendChild(frame);
+  els.questionMedia.appendChild(wrap);
+
+  const token = animal.id + ":" + state.index;
+  frame.dataset.token = token;
+
+  // Random crop parameters — picked once per question so the same animal
+  // hits a different feature on different rounds.
+  const zoom = 2.6 + Math.random() * 0.9;        // 2.6x – 3.5x
+  const cx = 0.32 + Math.random() * 0.36;        // 0.32 – 0.68 (avoid edges)
+  const cy = 0.28 + Math.random() * 0.40;        // bias slightly upward so
+                                                 // faces/heads are favored
+
+  const showEmojiFallback = () => {
+    if (frame.dataset.token !== token) return;
+    frame.innerHTML = "";
+    const big = document.createElement("div");
+    big.className = "emoji-big crop-emoji-fallback";
+    big.textContent = animal.emoji || "🐾";
+    frame.appendChild(big);
+  };
+
+  fetchWikiPhoto(animal.wiki).then((url) => {
+    if (frame.dataset.token !== token) return;
+    if (!url) {
+      showEmojiFallback();
+      return;
+    }
+    const img = new Image();
+    img.alt = animal.name;
+    img.className = "crop-img";
+    img.onload = () => {
+      if (frame.dataset.token !== token) return;
+      positionCropped(frame, img, zoom, cx, cy);
+      frame.innerHTML = "";
+      frame.appendChild(img);
+    };
+    img.onerror = showEmojiFallback;
+    img.src = url;
+  });
+}
+
+function positionCropped(frame, img, zoom, cx, cy) {
+  // Sized after layout — read the frame's actual rendered box so the math
+  // stays correct across phone/tablet sizes.
+  const rect = frame.getBoundingClientRect();
+  const fw = rect.width || 240;
+  const fh = rect.height || 240;
+  const aspect = img.naturalWidth / img.naturalHeight || 1;
+  let scaledW, scaledH;
+  if (aspect >= 1) {
+    scaledH = fh * zoom;
+    scaledW = scaledH * aspect;
+  } else {
+    scaledW = fw * zoom;
+    scaledH = scaledW / aspect;
   }
+  // Clamp so the scaled image always covers the frame.
+  const minLeft = fw - scaledW;
+  const minTop = fh - scaledH;
+  let left = -(cx * scaledW) + fw / 2;
+  let top = -(cy * scaledH) + fh / 2;
+  if (left > 0) left = 0;
+  if (left < minLeft) left = minLeft;
+  if (top > 0) top = 0;
+  if (top < minTop) top = minTop;
+  img.style.width = scaledW + "px";
+  img.style.height = scaledH + "px";
+  img.style.left = left + "px";
+  img.style.top = top + "px";
 }
 
 // ---------- Shared question cards ----------
@@ -598,24 +642,14 @@ function renderFlagChoices(choices) {
 }
 
 // ---------- Answer handling ----------
-function correctAnswerName() {
-  if (state.mode === "habitat") return state.current.habitat;
-  return state.current.name;
-}
-
-function correctAnswerLabel() {
-  if (state.mode === "habitat") return "the " + state.current.habitat.toLowerCase();
-  return state.current.name;
-}
-
 function onAnswer(btn, item) {
   if (state.locked) return;
   state.locked = true;
   const buttons = els.choices.querySelectorAll(".choice");
   buttons.forEach((b) => (b.disabled = true));
 
-  const correctName = correctAnswerName();
-  const correctLabel = correctAnswerLabel();
+  const correctName = state.current.name;
+  const correctLabel = state.current.name;
 
   if (item.name === correctName) {
     btn.classList.add("correct");

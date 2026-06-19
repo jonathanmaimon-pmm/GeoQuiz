@@ -230,6 +230,32 @@ body {
 @keyframes photo-spin {
   to { transform: rotate(360deg); }
 }
+
+/* Cropped (Zoomed) mode — fixed square viewport, image scaled+positioned */
+.crop-frame {
+  width: clamp(180px, 60vmin, 280px);
+  height: clamp(180px, 60vmin, 280px);
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #f3f4f6;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18), inset 0 0 0 4px #fff;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.crop-img {
+  position: absolute;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+}
+.crop-emoji-fallback {
+  font-size: clamp(3rem, 14vh, 5rem);
+}
 .animal-photo {
   max-width: 100%;
   max-height: 100%;

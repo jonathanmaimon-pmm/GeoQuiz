@@ -10,11 +10,13 @@ A bright, friendly trivia app for little learners (built with a 5-year-old in mi
 - **Symbols** — see a cultural emoji (🍣, 🗽, 🦘…), pick the country.
 - **Clues** — read (or hear) 3 short facts, pick the country.
 
-### 🐾 Animals (20 animals — capybara, axolotl, pangolin, sloth, narwhal, quokka, platypus, red panda, hedgehog… across mammals, birds, reptiles, amphibians, ocean creatures, and insects)
-- **Pictures** — see a real photo of the animal (fetched live from Wikipedia), pick its name. Lesser-known animals and same-group distractors make this a real challenge, not a 2-year-old's emoji match.
-- **Habitats** — see the animal, pick where it lives (Rainforest / Ocean / Polar / Wetland / Forest / Garden / Desert).
+### 🐾 Animals (37 animals across mammals, birds, reptiles, amphibians, ocean creatures, and insects — capybara, axolotl, pangolin, sloth, narwhal, quokka, platypus, red panda, hedgehog, tiger, cheetah, zebra, polar bear, koala, fox, peacock, eagle, parrot, crocodile, jellyfish, starfish, ladybug…)
+- **Pictures** — see a real photo of the animal (fetched live from Wikipedia), pick its name.
+- **Zoomed** — see a randomly cropped close-up of the photo; pick the animal from a feature alone. A different crop every round.
 - **Babies** — see the baby's name ("Joey", "Pangopup", "Puggle", "Hoglet"), pick the parent.
 - **Clues** — read (or hear) 3 short facts, pick the animal.
+
+Same-group distractors (mammal vs other mammals) and a 37-strong pool keep wrong answers ambiguous instead of obvious.
 
 ## Accessibility for pre-readers
 
