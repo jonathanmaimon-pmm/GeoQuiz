@@ -357,6 +357,15 @@ body {
   box-shadow: 0 3px 0 #2c80c7, 0 6px 10px rgba(0,0,0,0.1);
 }
 .speak-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #2c80c7; }
+.speak-btn.speaking {
+  background: var(--good);
+  box-shadow: 0 3px 0 #357a37, 0 6px 10px rgba(0,0,0,0.1);
+  animation: speakPulse 1.2s ease-in-out infinite;
+}
+@keyframes speakPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.05); }
+}
 
 /* Choices */
 .choices {

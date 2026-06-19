@@ -147,25 +147,73 @@ function soundFinish() {
 
 // ---------- Speech synthesis (read clues / sounds aloud) ----------
 const speechSupported = "speechSynthesis" in window;
-function speak(text) {
+
+// Android Chrome quirk: speechSynthesis.getVoices() returns [] until the
+// voiceschanged event has fired. Speaking before voices load can silently
+// drop the utterance. Cache them as soon as they're available and re-poll.
+let speechVoices = [];
+function refreshVoices() {
+  if (!speechSupported) return;
+  const v = speechSynthesis.getVoices();
+  if (v && v.length) speechVoices = v;
+}
+if (speechSupported) {
+  refreshVoices();
+  speechSynthesis.onvoiceschanged = refreshVoices;
+}
+function pickEnglishVoice() {
+  if (!speechVoices.length) return null;
+  return (
+    speechVoices.find((v) => v.lang === "en-US") ||
+    speechVoices.find((v) => /^en[-_]/i.test(v.lang)) ||
+    speechVoices[0]
+  );
+}
+
+let currentSpeakBtn = null;
+function setSpeakBtnState(btn, on) {
+  if (!btn) return;
+  btn.classList.toggle("speaking", on);
+  btn.textContent = on ? "⏸ Stop" : "🔊 Read aloud";
+}
+
+function speak(text, btn) {
   if (!speechSupported || !text) return;
-  // Only cancel when something is actually speaking. A no-op cancel can leave
-  // Chrome's synthesis engine paused, after which subsequent speak() calls
-  // queue but never play. Resume() before speak() is the documented fix.
+  refreshVoices();
   if (speechSynthesis.speaking || speechSynthesis.pending) {
     speechSynthesis.cancel();
   }
-  speechSynthesis.resume();
+  if (currentSpeakBtn) setSpeakBtnState(currentSpeakBtn, false);
+  currentSpeakBtn = btn || null;
+
   const u = new SpeechSynthesisUtterance(text);
+  const voice = pickEnglishVoice();
+  if (voice) u.voice = voice;
+  u.lang = (voice && voice.lang) || "en-US";
   u.rate = 0.92;
   u.pitch = 1.05;
+  u.onstart = () => setSpeakBtnState(btn, true);
+  u.onend = () => {
+    if (currentSpeakBtn === btn) currentSpeakBtn = null;
+    setSpeakBtnState(btn, false);
+  };
+  u.onerror = (e) => {
+    console.warn("speech error:", e && e.error);
+    setSpeakBtnState(btn, false);
+  };
+
+  // Defeat Chrome's "paused after cancel" bug: resume() right before speak.
+  speechSynthesis.resume();
   speechSynthesis.speak(u);
 }
+
 function stopSpeech() {
   if (!speechSupported) return;
   if (speechSynthesis.speaking || speechSynthesis.pending) {
     speechSynthesis.cancel();
   }
+  if (currentSpeakBtn) setSpeakBtnState(currentSpeakBtn, false);
+  currentSpeakBtn = null;
 }
 
 // ---------- Speech recognition (shout-the-answer) ----------
@@ -603,7 +651,12 @@ function makeSpeakBtn(textToSpeak, ariaLabel) {
   btn.textContent = "🔊 Read aloud";
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
-    speak(textToSpeak);
+    // Tapping the same button while it's reading aloud cancels playback.
+    if (btn.classList.contains("speaking")) {
+      stopSpeech();
+      return;
+    }
+    speak(textToSpeak, btn);
   });
   return btn;
 }
